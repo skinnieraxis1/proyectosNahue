@@ -1,3 +1,13 @@
+<?php
+session_start();
+if (empty($_SESSION["cliente"])) {
+    header("location: http://localhost/proyectoNahue/login.php");
+    exit(); // Asegúrate de salir después de redirigir
+}
+include("conexion.php");
+
+
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>

@@ -37,11 +37,45 @@ $_SESSION['LAST_ACTIVITY'] = time();
    \ \_______\ \__\ \__\ \________\ \__\ \__\       \ \_______\ \_______\       \ \__\ \__\ \__\ \__\ \_______\ \__\\ _\\ \__\\ _\\ \_______\
     \|_______|\|__|\|__|\|________|\|__|\|__|        \|_______|\|_______|        \|__|\|__|\|__|\|__|\|_______|\|__|\|__|\|__|\|__|\|_______|
         </pre>
-        <div class="usuario">
-            <button onclick="location.href='./agregarSaldo.php'"></button>
-            <button onclick="location.href='./agregarSaldo.php'"></button>
-            <button onclick="location.href='./agregarSaldo.php'"></button>
-            <button onclick="location.href='./agregarSaldo.php'"></button>
+        <div class="buttonDiv">
+            <button onclick="location.href='./agregarSaldo.php'">Ingresar Saldo</button>
+            <button onclick="location.href='./agregarSaldo.php'">Ver saldo</button>
+            <button onclick="location.href='./agregarSaldo.php'">Pedir prestamo</button>
+            <button onclick="location.href='./agregarSaldo.php'">Realizar pago</button>
+        </div>
+        <div class='usuario'>
+            <?php
+                
+                $stmt = $link->prepare("SELECT id_cajaDeAhorro FROM cajadeahorros WHERE id_cliente = ?");
+                $stmt->bind_param("s", $_SESSION['cliente']);
+                $stmt->execute();
+                $result = $stmt->get_result();
+
+                if ($result->num_rows > 0) {
+                    $stmtC = $link->prepare("SELECT saldoInicio, saldoFinal, ingreso_egreso, fecha FROM historial WHERE id_cajaDeAhorro = ?");
+                    $stmtC->bind_param("s", $row['id_cajaDeAhorro']);
+                    $stmtC->execute();
+                    $resultC = $stmtC->get_result();
+                    if ($resultC->num_rows > 0) {
+
+                        echo "<pre>";
+                        echo "+------------+------------------------------------------------------------+\n";
+                        echo "|   ID   |  Saldo Inicial  |  Saldo Final | Tipo de transacción |  Fecha  |\n";
+                        echo "+------------+------------------------------------------------------------+\n";
+    
+                        // Print each user's details
+                        while ($row = $result->fetch_assoc()) {
+                            printf("|   %-4s |  %-62s |\n", $row['saldoInicio'], $row['saldoFinal']);
+                        }
+    
+                        echo "+----+---------------------------------------------------------------------+\n";
+                        echo "</pre>"; 
+                    } else {
+                        echo "No users found.<br>";
+                    }
+                }
+                $link->close();
+            ?>
         </div>
 </body>
 
@@ -87,5 +121,21 @@ input:focus{
 .usuario{
     font-size: 20px;
 }
+
+.buttonDiv{
+    display:flex;
+    justify-content: space-between;
+    padding: 10svh;
+}
+
+button{
+    background-color: #212226;
+    color: #41FF00;
+    border: #41FF00 1px solid;
+    border-radius: 0px;
+    padding: 10px 20px;
+    font-family: 'IBM' ; 
+}
+
 </style>
 </html>

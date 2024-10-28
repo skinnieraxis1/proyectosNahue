@@ -50,7 +50,7 @@ if (isset($_POST['email'], $_POST['pswd'], $_POST['capt'], $_POST['DNI'])) {
             // Verifica la contraseña
             if (md5($_POST['pswd']) == $usuario['contrasena'] && $_POST['email'] == $usuario['email']) {
                 echo "<p>¡Inicio de sesión exitoso!</p>";
-                $_SESSION["cliente"] = $usuario;
+                $_SESSION["cliente"] = $usuario['id_cliente'];
                 header("Location: http://localhost/proyectoBanco/index.php");
                 unset($_SESSION['captcha']); 
                 exit;

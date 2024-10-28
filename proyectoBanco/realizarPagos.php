@@ -1,3 +1,11 @@
+<?php
+session_start();
+if (empty($_SESSION["cliente"])) {
+    header("location: http://localhost/proyectoNahue/login.php");
+    exit(); // Asegúrate de salir después de redirigir
+}
+include("conexion.php");
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,11 +26,16 @@
                                                                                                                               \|_________|
         </pre>
         
-        <form action="post">
-        <div class="inputDiv">
-            <input type="number" name="pagoRestar" placeholder="INGRESAR PAGO AQUI">
-        </div>
+        <form action="" method="POST">
+            <div class="inputDiv">
+                <input type="text" name="dniDestino" placeholder="INGRESAR DNI DEL DESTINATARIO" required>
+            </div>
+            <div class="inputDiv">
+                <input type="number" name="pagoRestar" placeholder="INGRESAR PAGO AQUI" required>
+            </di>
+            <button type="submit">Realizar Pago</button>
         </form>
+
         <div class="log">
             <label for="exampleLog" class="form-label">¿Regresar?
             <a class="hyper" href="./index.php">Haz clic aquí</a></label> <br>
