@@ -1,45 +1,48 @@
 <?php
 session_start();
 if (empty($_SESSION["cliente"])) {
-    header("location: http://localhost/proyectoNahue/login.php");
-    exit(); // Asegúrate de salir después de redirigir
+    header("Location: http://localhost/proyectoNahue/login.php");
+    exit();
 }
 include("conexion.php");
 
-// Procesar el formulario si se envía
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $id_cajaDeAhorro = $_POST['id_cajaDeAhorro'];
+if (isset($_POST['saldoNuevo'])) {
     $saldoNuevo = $_POST['saldoNuevo'];
-
-    // Obtener el saldo actual de la caja de ahorro
-    $query = "SELECT saldo FROM cajaDeAhorros WHERE id_cajaDeAhorro = ?";
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param("i", $id_cajaDeAhorro);
+    
+    $stmt = $link->prepare("SELECT saldo FROM cajaDeAhorros WHERE id_cliente = ?");
+    $stmt->bind_param("i", $_SESSION["cliente"]);
     $stmt->execute();
     $result = $stmt->get_result();
+    
     $row = $result->fetch_assoc();
     $saldoActual = $row['saldo'];
 
-    // Calcular el nuevo saldo
-    $nuevoSaldo = $saldoActual + $saldoNuevo;
-
-    // Actualizar el saldo en la base de datos
-    $updateQuery = "UPDATE cajaDeAhorros SET saldo = ? WHERE id_cajaDeAhorro = ?";
-    $updateStmt = $conn->prepare($updateQuery);
-    $updateStmt->bind_param("di", $nuevoSaldo, $id_cajaDeAhorro);
+    // Update balance
+    $updateQuery = "UPDATE cajaDeAhorros SET saldo = (saldo + ?) WHERE id_cliente = ?";
+    $updateStmt = $link->prepare($updateQuery);
+    $updateStmt->bind_param("di", $saldoNuevo, $_SESSION["cliente"]);
+    
     if ($updateStmt->execute()) {
-        // Insertar en el historial
-        $historialQuery = "INSERT INTO historial (saldoInicio, saldoFinal, ingreso_egreso, fecha, id_cajaDeAhorro) VALUES (?, ?, TRUE, CURDATE(), ?)";
-        $historialStmt = $conn->prepare($historialQuery);
-        $historialStmt->bind_param("ddi", $saldoActual, $nuevoSaldo, $id_cajaDeAhorro);
-        $historialStmt->execute();
+        // Insert into historial
+        $saldoFinal = $saldoActual + $saldoNuevo;
+        $queryHist = "INSERT INTO historial (saldoInicio, saldoFinal, ingreso_egreso, fecha, id_cajaDeAhorro) VALUES (?, ?, TRUE, CURDATE(), ?)";
+        
+        // Assuming $id_cajaDeAhorro is defined
+        $stmtHist = $link->prepare($queryHist);
+        $stmtHist->bind_param("ddi", $saldoActual, $saldoFinal, $id_cajaDeAhorro);
 
-        echo "<p>Saldo agregado exitosamente.</p>";
+        if ($stmtHist->execute()) {
+            echo "<p>Saldo agregado exitosamente.</p>";
+        } else {
+            echo "<p>Error al registrar el historial.</p>";
+        }
     } else {
         echo "<p>Error al agregar saldo.</p>";
     }
 }
 ?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -49,7 +52,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link rel="stylesheet" type="text/css" href="/assets/css/style.css">
 </head>
 <body>
-        <pre style="margin-left: 25%; margin-right: 30%">
+        <pre>
  ________  ________  ________  _______   ________  ________  ________          ________  ________  ___       ________  ________     
 |\   __  \|\   ____\|\   __  \|\  ___ \ |\   ____\|\   __  \|\   __  \        |\   ____\|\   __  \|\  \     |\   ___ \|\   __  \    
 \ \  \|\  \ \  \___|\ \  \|\  \ \   __/|\ \  \___|\ \  \|\  \ \  \|\  \       \ \  \___|\ \  \|\  \ \  \    \ \  \_|\ \ \  \|\  \   
@@ -60,10 +63,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                                                                  \|_________|
         </pre>
         <form action="" method="POST">
+            <?php 
+                $stmt = $link->prepare("SELECT saldo FROM cajaDeAhorros WHERE id_cliente = ?");
+                $stmt->bind_param("i", $_SESSION['cliente']);
+                $stmt->execute();
+                $result = $stmt->get_result();
+
+                if ($result->num_rows > 0) {
+                    $row = $result->fetch_assoc();
+                    echo "<h3>Saldo actual: ".$row['saldo']."</h3>";
+                } else {
+                    echo "No se encontró saldo."; 
+                }
+
+                $stmt->close();
+            ?>
             <div class="inputDiv">
-                <input type="hidden" name="id_cajaDeAhorro" value="<?php echo $_SESSION['id_cajaDeAhorro']; ?>">
-                <input type="number" name="saldoNuevo" placeholder="INGRESAR SALDO AQUI" required>
+                <input type="int" name="saldoNuevo" placeholder="INGRESAR SALDO AQUI" required>
             </div>
+            <br/>
             <button type="submit">Agregar Saldo</button>
         </form>
         <div class="log">
@@ -74,3 +92,60 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         
 </body>
+
+<style>
+
+@font-face {
+    font-family: 'IBM';
+    src: url("./assets/font/Px437_IBM_VGA_8x16.ttf");
+    font-weight: normal;
+    font-style: normal;
+}
+
+body{
+    background-color: #212226 ;
+    font-family: 'IBM' ; 
+    color: #41FF00;
+}
+
+input{
+    background-color: #212226;
+    border: 0px;
+    color: #41FF00;
+    outline: none;
+    outline-offset: none;
+    margin-left: 10px;
+}
+
+input:focus{
+    border: 0px black solid !important;
+    outline: none;
+    outline-offset: none;
+}
+
+.inputDiv{
+    display:flex;
+    padding: 0% 0%;
+}
+
+.usuario{
+    font-size: 20px;
+}
+
+.buttonDiv{
+    display:flex;
+    justify-content: space-between;
+    padding: 10svh;
+}
+
+button{
+    background-color: #212226;
+    color: #41FF00;
+    border: #41FF00 1px solid;
+    border-radius: 0px;
+    padding: 10px 20px;
+    font-family: 'IBM' ; 
+}
+
+</style>
+</html>

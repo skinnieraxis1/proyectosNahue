@@ -28,7 +28,8 @@ $_SESSION['LAST_ACTIVITY'] = time();
     <link rel="stylesheet" type="text/css" href="/assets/css/style.css">
 </head>
 <body>
-        <pre style="margin-left: 25%; margin-right: 30%">
+        <div style="display:flex; align-items:center; justify-content: center;">
+            <pre>
  ________  ________        ___  ________          ________  _______           ________  ___  ___  ________  ________  ________  ________     
 |\   ____\|\   __  \      |\  \|\   __  \        |\   ___ \|\  ___ \         |\   __  \|\  \|\  \|\   __  \|\   __  \|\   __  \|\   __  \    
 \ \  \___|\ \  \|\  \     \ \  \ \  \|\  \       \ \  \_|\ \ \   __/|        \ \  \|\  \ \  \\\  \ \  \|\  \ \  \|\  \ \  \|\  \ \  \|\  \   
@@ -36,12 +37,13 @@ $_SESSION['LAST_ACTIVITY'] = time();
   \ \  \____\ \  \ \  \|\  \\_\  \ \  \ \  \       \ \  \_\\ \ \  \_|\ \       \ \  \ \  \ \  \ \  \ \  \\\  \ \  \\  \\ \  \\  \\ \  \\\  \ 
    \ \_______\ \__\ \__\ \________\ \__\ \__\       \ \_______\ \_______\       \ \__\ \__\ \__\ \__\ \_______\ \__\\ _\\ \__\\ _\\ \_______\
     \|_______|\|__|\|__|\|________|\|__|\|__|        \|_______|\|_______|        \|__|\|__|\|__|\|__|\|_______|\|__|\|__|\|__|\|__|\|_______|
-        </pre>
+            </pre>
+        </div>
         <div class="buttonDiv">
             <button onclick="location.href='./agregarSaldo.php'">Ingresar Saldo</button>
-            <button onclick="location.href='./agregarSaldo.php'">Ver saldo</button>
-            <button onclick="location.href='./agregarSaldo.php'">Pedir prestamo</button>
-            <button onclick="location.href='./agregarSaldo.php'">Realizar pago</button>
+            <button onclick="location.href='./conSaldo.php'">Ver saldo</button>
+            <button onclick="location.href='./solicitarPago.php'">Pedir prestamo</button>
+            <button onclick="location.href='./realizarPagos.php'">Realizar pago</button>
         </div>
         <div class='usuario'>
             <?php

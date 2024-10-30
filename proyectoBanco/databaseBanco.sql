@@ -1,4 +1,4 @@
-drop database databaseBanco;
+drop database if exists databaseBanco;
 create database databaseBanco;
 use databaseBanco;
 create table cliente(

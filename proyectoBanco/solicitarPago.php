@@ -1,12 +1,45 @@
 <?php
 session_start();
 if (empty($_SESSION["cliente"])) {
-    header("location: http://localhost/proyectoNahue/login.php");
-    exit(); // Asegúrate de salir después de redirigir
+    header("Location: http://localhost/proyectoNahue/login.php");
+    exit();
 }
 include("conexion.php");
 
+if (isset($_POST['saldoNuevo'])) {
+    $saldoNuevo = $_POST['saldoNuevo'];
+    
+    $stmt = $link->prepare("SELECT saldo FROM cajaDeAhorros WHERE id_cliente = ?");
+    $stmt->bind_param("i", $_SESSION["cliente"]);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    $row = $result->fetch_assoc();
+    $saldoActual = $row['saldo'];
 
+    // Update balance
+    $updateQuery = "UPDATE cajaDeAhorros SET saldo = (saldo + ?) WHERE id_cliente = ?";
+    $updateStmt = $link->prepare($updateQuery);
+    $updateStmt->bind_param("di", $saldoNuevo, $_SESSION["cliente"]);
+    
+    if ($updateStmt->execute()) {
+        // Insert into historial
+        $saldoFinal = $saldoActual + $saldoNuevo;
+        $queryHist = "INSERT INTO historial (saldoInicio, saldoFinal, ingreso_egreso, fecha, id_cajaDeAhorro) VALUES (?, ?, TRUE, CURDATE(), ?)";
+        
+        // Assuming $id_cajaDeAhorro is defined
+        $stmtHist = $link->prepare($queryHist);
+        $stmtHist->bind_param("ddi", $saldoActual, $saldoFinal, $id_cajaDeAhorro);
+
+        if ($stmtHist->execute()) {
+            echo "<p>Prestamo dado con exito.</p>";
+        } else {
+            echo "<p>Error al registrar el historial.</p>";
+        }
+    } else {
+        echo "<p>Error con el prestamo.</p>";
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -17,7 +50,7 @@ include("conexion.php");
     <link rel="stylesheet" type="text/css" href="/assets/css/style.css">
 </head>
 <body>
-        <pre style="margin-left: 25%; margin-right: 30%">
+        <pre>
  ________  ________  ___       ___  ________  ___  _________  ________  ________          ________  ________  _______   ________  _________  ________  _____ ______   ________     
 |\   ____\|\   __  \|\  \     |\  \|\   ____\|\  \|\___   ___\\   __  \|\   __  \        |\   __  \|\   __  \|\  ___ \ |\   ____\|\___   ___\\   __  \|\   _ \  _   \|\   __  \    
 \ \  \___|\ \  \|\  \ \  \    \ \  \ \  \___|\ \  \|___ \  \_\ \  \|\  \ \  \|\  \       \ \  \|\  \ \  \|\  \ \   __/|\ \  \___|\|___ \  \_\ \  \|\  \ \  \\\__\ \  \ \  \|\  \   
@@ -27,10 +60,34 @@ include("conexion.php");
    |\_________\|_______|\|_______|\|__|\|_______|\|__|    \|__|  \|__|\|__|\|__|\|__|        \|__|     \|__|\|__|\|_______|\_________\   \|__|  \|__|\|__|\|__|     \|__|\|_______|
    \|_________|                                                                                                           \|_________|                                                                                                                \|_________|
         </pre>
-        <form action="post">
-        <div class="inputDiv">
-            <input type="number" name="prestamo" placeholder="INGRESAR PRESTAMO AQUI">
-        </div>
+        <form action="" method="POST">
+            <?php 
+                $stmt = $link->prepare("SELECT saldo FROM cajaDeAhorros WHERE id_cliente = ?");
+                $stmt->bind_param("i", $_SESSION['cliente']);
+                $stmt->execute();
+                $result = $stmt->get_result();
+
+                if ($result->num_rows > 0) {
+                    $row = $result->fetch_assoc();
+                    echo "<h3>Saldo actual: ".$row['saldo']."</h3>";
+                } else {
+                    echo "No se encontró saldo."; 
+                }
+
+                $stmt->close();
+            ?>
+            <div class="inputDiv">
+                <input type="int" name="saldoNuevo" placeholder="INGRESAR PRESTAMO AQUI" aria-describedby="prestamoHelp" required>
+            </div>
+            <br>
+            <div id="prestamoHelp" class="form-text">El prestamo deberá ser devuelto antes del <?php 
+                $date = new DateTime(); 
+                $date->modify('+6 months');
+                $fechaSeisMeses = $date->format('d-m-Y'); 
+                echo $fechaSeisMeses?>
+                <br>
+            <br/>
+            <button type="submit">Pedir prestamo</button>
         </form>
         <div class="log">
             <label for="exampleLog" class="form-label">¿Regresar?
@@ -39,5 +96,60 @@ include("conexion.php");
 
 
 
-
 </body>
+
+<style>
+@font-face {
+    font-family: 'IBM';
+    src: url("./assets/font/Px437_IBM_VGA_8x16.ttf");
+    font-weight: normal;
+    font-style: normal;
+}
+
+body{
+    background-color: #212226 ;
+    font-family: 'IBM' ; 
+    color: #41FF00;
+}
+
+input{
+    background-color: #212226;
+    border: 0px;
+    color: #41FF00;
+    outline: none;
+    outline-offset: none;
+    margin-left: 10px;
+}
+
+input:focus{
+    border: 0px black solid !important;
+    outline: none;
+    outline-offset: none;
+}
+
+.inputDiv{
+    display:flex;
+    padding: 0% 0%;
+}
+
+.usuario{
+    font-size: 20px;
+}
+
+.buttonDiv{
+    display:flex;
+    justify-content: space-between;
+    padding: 10svh;
+}
+
+button{
+    background-color: #212226;
+    color: #41FF00;
+    border: #41FF00 1px solid;
+    border-radius: 0px;
+    padding: 10px 20px;
+    font-family: 'IBM' ; 
+}
+
+</style>
+</html>
