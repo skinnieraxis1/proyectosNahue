@@ -54,26 +54,36 @@ $_SESSION['LAST_ACTIVITY'] = time();
                 $result = $stmt->get_result();
 
                 if ($result->num_rows > 0) {
-                    $stmtC = $link->prepare("SELECT saldoInicio, saldoFinal, ingreso_egreso, fecha FROM historial WHERE id_cajaDeAhorro = ?");
+                    $row = $result->fetch_assoc();
+                    $stmtC = $link->prepare("SELECT id_historial, saldoInicio, saldoFinal, ingreso_egreso, fecha, emisor, receptor FROM historial WHERE id_cajaDeAhorro = ?");
                     $stmtC->bind_param("s", $row['id_cajaDeAhorro']);
                     $stmtC->execute();
                     $resultC = $stmtC->get_result();
+
+                    echo $row['id_cajaDeAhorro'];
                     if ($resultC->num_rows > 0) {
 
                         echo "<pre>";
                         echo "+------------+------------------------------------------------------------+\n";
-                        echo "|   ID   |  Saldo Inicial  |  Saldo Final | Tipo de transacción |  Fecha  |\n";
+                        echo "|   ID   |  Saldo Inicial  |  Saldo Final  | Tipo de transacción |    Fecha    |\n";
                         echo "+------------+------------------------------------------------------------+\n";
     
                         // Print each user's details
-                        while ($row = $result->fetch_assoc()) {
-                            printf("|   %-4s |  %-62s |\n", $row['saldoInicio'], $row['saldoFinal']);
+                        while ($row = $resultC->fetch_assoc()) {
+                            if ($row['ingreso_egreso'] && $row['emisor'] != $row['receptor']){
+                                $tipo = 'Transacción';
+                            }else if($row['ingreso_egreso']){
+                                $tipo = 'Ingreso';
+                            }else{
+                                $tipo = 'Egreso';
+                            }
+                            printf("|   %-4s |   %-12s  |  %-12s | %-20s | %-11s |\n", $row['id_historial'], $row['saldoInicio'], $row['saldoFinal'], $tipo, $row['fecha']);
                         }
     
                         echo "+----+---------------------------------------------------------------------+\n";
                         echo "</pre>"; 
                     } else {
-                        echo "No users found.<br>";
+                        echo "No historial found.<br>";
                     }
                 }
                 $link->close();

@@ -14,7 +14,7 @@ if (!isset($_SESSION['captcha'])) {
 
 // Define constantes para los intentos máximos y el tiempo de bloqueo
 define('MAX_ATTEMPTS', 5);
-define('LOCKOUT_TIME', 3); // Tiempo de bloqueo en segundos (5 minutos)
+define('LOCKOUT_TIME', 1); // Tiempo de bloqueo en segundos (5 minutos)
 
 // Verifica si la sesión de bloqueo está establecida
 if (isset($_SESSION['lockout_time']) && time() < $_SESSION['lockout_time']) {
